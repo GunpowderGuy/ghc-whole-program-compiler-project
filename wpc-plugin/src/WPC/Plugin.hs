@@ -44,6 +44,12 @@ import WPC.Stubs
 import WPC.GlobalEnv
 import WPC.ForeignStubDecls
 
+import WPC.CmmSerde 
+import GHC.Cmm.Dataflow.Label (Label, mkHooplLabel)
+import GHC.Types.Unique        (mkUniqueGrimily)
+
+
+
 plugin :: Plugin
 plugin = defaultPlugin
   { installCoreToDos  = coreToDosFun
@@ -264,3 +270,8 @@ linkFun ghcLink dflags isBatchMode hpt = do
   -}
   writeGhcStgApp dflags hsc_unit_env hpt
   pure result
+
+
+testSerdeLink :: IO ()
+testSerdeLink = do
+  putStrLn $ "serdeTest = " ++ show serdeTest
