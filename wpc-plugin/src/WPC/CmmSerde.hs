@@ -17,6 +17,12 @@
 module WPC.CmmSerde where
 
 
+--CmmTickish and its utility function
+import GHC.Types.Tickish  (CmmTickish, GenTickish(..))
+import GHC.Unit.Module    (mkModule, mkModuleNameFS)
+import GHC.Unit.Types     (mainUnit)
+import GHC.Data.FastString (fsLit)
+
 import GHC.Types.Var              (Var, mkGlobalVar)
 import GHC.Types.Id.Info          (IdDetails(VanillaId), vanillaIdInfo)
 import GHC.Types.Name             (mkSystemName)
@@ -373,17 +379,33 @@ parseNodeO_O_json = withObject "CmmNode O O" $ \o -> do
 
 
 
-
+--https://www.stackage.org/haddock/lts-24.17/ghc-9.10.3/src/GHC.Types.Tickish.html#GenTickish
 --deriving instance Generic (GenTickish 'TickishPassCmmC)
 
--- CmmTickish / ForeignTarget: FromJSON dummy
+-- A tiny local helper: a stable fake Module for defaults
+dummyTickModule :: Module
+dummyTickModule = mkModule mainUnit (mkModuleNameFS (fsLit "WPC_Dummy"))
+
 instance ToJSON CmmTickish where
---  toJSON _ = dummyVal "CmmTickish dummy instance"
-  toJSON _ = undefined
+  toJSON _ =
+    object
+      [ "_unsupported" .= True
+      , "note"         .= ("CmmTickish not encoded; will default on decode" :: Text)
+      ]
 
 instance FromJSON CmmTickish where
+  -- Default to a harmless HPC tick in a fake module, id 0.
+  parseJSON _ = pure (HpcTick dummyTickModule 0)
+
+
+-- CmmTickish / ForeignTarget: FromJSON dummy
+--instance ToJSON CmmTickish where
+--  toJSON _ = dummyVal "CmmTickish dummy instance"
+--  toJSON _ = undefined
+
+--instance FromJSON CmmTickish where
 --parseJSON _ = fail "FromJSON CmmTickish: dummy instance"
-  parseJSON _ = undefined 
+--  parseJSON _ = undefined 
 
 --This two seem like instances i dont have to handle  .. I seemed to have been referring to ForeignTarget and CmmTickish
 
