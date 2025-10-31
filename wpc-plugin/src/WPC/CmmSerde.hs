@@ -16,6 +16,16 @@
 
 module WPC.CmmSerde where
 
+
+import GHC.Types.Var              (Var, mkGlobalVar)
+import GHC.Types.Id.Info          (IdDetails(VanillaId), vanillaIdInfo)
+import GHC.Types.Name             (mkSystemName)
+import GHC.Types.Name.Occurrence  (mkVarOcc)
+import GHC.Types.Unique           (mkUniqueGrimily)
+import GHC.Builtin.Types          (unitTy)   -- un tipo levantado (lifted), simple y seguro
+--being imported for defaultVar
+
+
 import Data.Aeson (ToJSON(..))
 import Data.Word (Word64)
 
@@ -909,6 +919,18 @@ instance FromJSON CmmInfoTable --where
 --instance FromJSON CmmInfoTable 
 --this depends on GHC.Types.Var.Var, which seems to depend on a lot of GHC stuff
 -- maybe i should not bother to serialize GHC.Types.Var.Var? 
+
+-- | A single, process-stable dummy Var (a global Id with type 'Any :: Type').
+
+-- | Var placeholder por defecto: un Id global 'VanillaId' con tipo () :: Type.
+defaultVar :: Var
+defaultVar =
+  let u   = mkUniqueGrimily 0
+      occ = mkVarOcc "placeholderVar"
+      nm  = mkSystemName u occ
+      ty  = unitTy
+  in  mkGlobalVar VanillaId nm ty vanillaIdInfo
+
 
 instance FromJSON GHC.Types.Var.Var where
     parseJSON _ = fail "dummy"
