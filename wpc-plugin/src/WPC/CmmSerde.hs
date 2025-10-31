@@ -36,7 +36,7 @@ import GHC.Types.Unique         (getUnique, getKey)
 
 import qualified GHC.Plugins as GHC.Plugins
 
-import GHC.Cmm.Type (CmmType, typeWidth, isGcPtrType, isFloatType)
+import GHC.Cmm.Type (CmmType, typeWidth, isGcPtrType, isFloatType , ForeignHint(..) )
 
 
 import GHC.Types.Unique.DSet ( UniqDSet (..))
@@ -100,9 +100,14 @@ import GHC.Cmm.CLabel (CLabel, ForeignLabelSource (..), mkForeignLabel) -- label
 import GHC.Cmm.Dataflow.Block
 import GHC.Cmm.Dataflow.Graph
 import GHC.Cmm.Dataflow.Label
+import GHC.Cmm.Node (ForeignConvention(..), ForeignTarget(..) ,  CmmReturnInfo(..) )
+import GHC.Cmm.MachOp ( CallishMachOp(..), MemoryOrdering(..) , AtomicMachOp(..))
+
 
 -- import GHC.Cmm.Reg (GlobalReg) -- register type used by CmmProc
 -- Other GHC internals
+import GHC.Types.ForeignCall ( CCallConv(..) ) 
+
 
 import GHC.Data.FastString (fsLit)
 import GHC.Types.Basic (FunctionOrData (..))
@@ -380,16 +385,56 @@ instance FromJSON CmmTickish where
 --parseJSON _ = fail "FromJSON CmmTickish: dummy instance"
   parseJSON _ = undefined 
 
---This two seem like instances i dont have to handle
+--This two seem like instances i dont have to handle  .. I seemed to have been referring to ForeignTarget and CmmTickish
 
 
-instance ToJSON ForeignTarget where
+--import GHC.Types.ForeignCall ( CCallConv(..) ) 
+--import GHC.Cmm.Node (ForeignConvention(..), ForeignTarget(..) ,  CmmReturnInfo(..))
+--import GHC.Cmm.MachOp ( CallishMachOp(..), MemoryOrdering(..) , AtomicMachOp(..))
+-- GHC.Cmm.Type (ForeignHint(..))
+
+deriving instance Generic CmmReturnInfo
+instance ToJSON CmmReturnInfo
+instance FromJSON CmmReturnInfo
+
+deriving instance Generic ForeignHint
+instance ToJSON ForeignHint
+instance FromJSON ForeignHint
+
+
+deriving instance Generic CCallConv
+instance ToJSON CCallConv
+instance FromJSON CCallConv
+
+deriving instance Generic ForeignConvention
+instance ToJSON ForeignConvention
+instance FromJSON ForeignConvention
+
+
+deriving instance Generic MemoryOrdering
+instance ToJSON MemoryOrdering
+instance FromJSON MemoryOrdering
+
+deriving instance Generic AtomicMachOp
+instance ToJSON AtomicMachOp
+instance FromJSON AtomicMachOp
+
+deriving instance Generic CallishMachOp
+instance ToJSON CallishMachOp
+instance FromJSON CallishMachOp
+
+--https://www.stackage.org/haddock/lts-24.17/ghc-9.10.3/GHC-Cmm-Node.html#t:ForeignTarget
+deriving instance Generic ForeignTarget 
+instance ToJSON ForeignTarget
+instance FromJSON ForeignTarget
+
+--instance ToJSON ForeignTarget where
 --  toJSON _ = dummyVal "ForeignTarget dummy instance"
-  toJSON _ = undefined
+--  toJSON _ = undefined
 
-instance FromJSON ForeignTarget where
+--instance FromJSON ForeignTarget where
     --parseJSON _ = fail "FromJSON ForeignTarget: dummy instance"
-    parseJSON _ = undefined 
+--    parseJSON _ = undefined 
 
 -- needed because of instance FromJSON CmmTopInfo
 
