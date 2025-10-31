@@ -931,14 +931,16 @@ defaultVar =
       ty  = unitTy
   in  mkGlobalVar VanillaId nm ty vanillaIdInfo
 
+instance ToJSON Var where
+  toJSON _ =
+    object
+      [ "tag"    .= ("Var" :: String)
+      , "status" .= ("not handled" :: String)
+      , "note"   .= ("will be deserialized back into defaultVar" :: String)
+      ]
 
-instance FromJSON GHC.Types.Var.Var where
-    parseJSON _ = fail "dummy"
-
--- Var: FromJSON manual (dummy)
-instance ToJSON GHC.Types.Var.Var where
-  --toJSON _ = dummyVal "Var dummy instance"
-    toJSON = undefined 
+instance FromJSON Var where
+  parseJSON _ = pure defaultVar
 
 deriving instance Generic GHC.Types.ForeignCall.ForeignCall
 --instance FromJSON GHC.Types.ForeignCall.ForeignCall
