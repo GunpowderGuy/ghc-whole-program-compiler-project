@@ -47,6 +47,7 @@ import WPC.ForeignStubDecls
 import WPC.CmmSerde 
 import GHC.Cmm.Dataflow.Label (Label, mkHooplLabel)
 import GHC.Types.Unique        (mkUniqueGrimily)
+import Data.Aeson (toJSON)
 
 
 
@@ -214,7 +215,7 @@ runPhaseFun phase = do
 
       --------------------------
 
-      outputModPak hscEnv cg_module mg_binds stgBinds cg_foreign (ForeignStubDecls stubDecls) modLocation outputFileName cmmFile has_h_allStub c_allStub (Just (mg, ms))
+      --outputModPak hscEnv cg_module mg_binds stgBinds cg_foreign (ForeignStubDecls stubDecls) modLocation outputFileName cmmFile has_h_allStub c_allStub (Just (mg, ms))
       pure result
 
     _ -> runPhase phase
@@ -224,7 +225,16 @@ stgToCmmFun hscEnv cfg itpm tcList ccc stgBinds hpcInfo = do
   liftIO $ do
     putStrLn $ " ###### run stgToCmmFun"
     modifyIORef globalEnvIORef $ \d -> d {geStgBinds = Just stgBinds}
-  StgToCmm.codeGen (hsc_logger hscEnv) (hsc_tmpfs hscEnv) cfg itpm tcList ccc stgBinds hpcInfo
+  let stream = StgToCmm.codeGen (hsc_logger hscEnv) (hsc_tmpfs hscEnv) cfg itpm tcList ccc stgBinds hpcInfo
+  
+  let serde parameter = do
+        --let cmmDoc = vcat $ map (\i -> pdoc platform i $$ blankLine) a
+        --hPutStr cmmHandle . showSDoc dflags $ withPprStyle dumpStyle cmmDoc
+        let temp = toJSON parameter  
+        liftIO $ print temp
+        pure parameter
+
+  Stream.mapM serde stream
 
 cmmToRawCmmFun :: Handle -> HscEnv -> DynFlags -> Maybe Module -> Stream IO CmmGroupSRTs a -> IO (Stream IO RawCmmGroup a)
 cmmToRawCmmFun cmmHandle hscEnv dflags mMod cmms = do
@@ -243,6 +253,7 @@ cmmToRawCmmFun cmmHandle hscEnv dflags mMod cmms = do
                                   alwaysPrintPromTick
       dumpStyle = mkDumpStyle print_unqual
 
+  --let dump :: _
   let dump a = do
         let cmmDoc = vcat $ map (\i -> pdoc platform i $$ blankLine) a
         hPutStr cmmHandle . showSDoc dflags $ withPprStyle dumpStyle cmmDoc

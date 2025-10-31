@@ -185,7 +185,8 @@ import GHC.Types.CostCentre
   , mkSingletonCCS
   )
 
-
+--https://hackage-content.haskell.org/package/ghc-9.10.3/docs/src/GHC.Cmm.html#CmmProgram
+-- CmmProgram is a list of CmmGroup, which is basically the same type i am serializying 
 -- Allow Aeson Generic-based instance at the top level
 deriving instance Generic (GenCmmDecl CmmStatics CmmTopInfo CmmGraph)
 instance FromJSON (GenCmmDecl CmmStatics CmmTopInfo CmmGraph)
