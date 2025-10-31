@@ -43,7 +43,7 @@ import GHC.Types.Unique.DSet ( UniqDSet (..))
 
 import GHC.Data.FastString
 
-import GHC.Types.CostCentre ( CCFlavour) 
+import GHC.Types.CostCentre ( CCFlavour , mkCafFlavour ) 
 import GHC.Types.CostCentre.State (CostCentreIndex )
 import GHC.Data.Strict ( Maybe(..) )
 
@@ -979,9 +979,9 @@ instance ToJSON CCFlavour where
 -}
 
 --deriving instance Generic GHC.Types.CostCentre.CCFlavour
-instance FromJSON GHC.Types.CostCentre.CCFlavour where
-    parseJSON =
-        error "falla pues"
+--instance FromJSON GHC.Types.CostCentre.CCFlavour where
+--    parseJSON =
+--        error "falla pues"
 
 
 --Csaba says to alwayys use CafCC to not need Indexed CCflavour
@@ -991,9 +991,22 @@ instance FromJSON GHC.Types.CostCentre.CCFlavour where
 --https://hackage-content.haskell.org/package/ghc-9.10.2/docs/src/GHC.Types.CostCentre.html#mkExprCCFlavour
 
 --seems like this type is source annotations cmm can prescind from 
-instance ToJSON GHC.Types.CostCentre.CCFlavour  where
-  toJSON = undefined
+--instance ToJSON GHC.Types.CostCentre.CCFlavour  where
+--  toJSON = undefined
 --https://hackage-content.haskell.org/package/ghc-9.10.2/docs/GHC-Types-CostCentre.html
+
+-- Followed Csabas advice
+instance ToJSON CCFlavour where
+  toJSON _ = object
+    [ "tag"     .= ("CCFlavour" :: String)
+    , "variant" .= ("CafCC"     :: String)
+    , "note"    .= ("forced to CafCC to avoid IndexedCCFlavour" :: String)
+    ]
+
+-- Siempre deserializa a CafCC usando el constructor público expuesto
+instance FromJSON CCFlavour where
+  parseJSON _ = pure mkCafFlavour
+
 
 deriving instance Generic SrcSpan
 instance FromJSON SrcSpan --where
