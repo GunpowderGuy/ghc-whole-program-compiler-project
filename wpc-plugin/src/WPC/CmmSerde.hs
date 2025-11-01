@@ -45,7 +45,7 @@ import qualified GHC.Plugins as GHC.Plugins
 import GHC.Cmm.Type (CmmType, typeWidth, isGcPtrType, isFloatType , ForeignHint(..) )
 
 
-import GHC.Types.Unique.DSet ( UniqDSet (..))
+import GHC.Types.Unique.DSet ( UniqDSet (..), uniqDSetToList, emptyUniqDSet, addOneToUniqDSet)
 
 import GHC.Data.FastString
 
@@ -1176,17 +1176,36 @@ instance ToJSON (GHC.Types.FM.GenInstantiatedUnit GHC.Types.FM.UnitId)
 --        error "falla pues"
 
 
+
+instance ToJSON (GHC.Types.Unique.DSet.UniqDSet GHC.Plugins.ModuleName) where
+  toJSON :: GHC.Types.Unique.DSet.UniqDSet GHC.Plugins.ModuleName -> Data.Aeson.Value
+  toJSON s =
+    Data.Aeson.toJSON
+      (GHC.Types.Unique.DSet.uniqDSetToList s :: [GHC.Plugins.ModuleName])
+
+instance FromJSON (GHC.Types.Unique.DSet.UniqDSet GHC.Plugins.ModuleName) where
+  parseJSON :: Data.Aeson.Value
+            -> Data.Aeson.Types.Parser (GHC.Types.Unique.DSet.UniqDSet GHC.Plugins.ModuleName)
+  parseJSON v = do
+    ms <- (Data.Aeson.parseJSON v :: Data.Aeson.Types.Parser [GHC.Plugins.ModuleName])
+    let z    :: GHC.Types.Unique.DSet.UniqDSet GHC.Plugins.ModuleName
+        z    = GHC.Types.Unique.DSet.emptyUniqDSet
+        step :: GHC.Types.Unique.DSet.UniqDSet GHC.Plugins.ModuleName
+             -> GHC.Plugins.ModuleName
+             -> GHC.Types.Unique.DSet.UniqDSet GHC.Plugins.ModuleName
+        step acc m = GHC.Types.Unique.DSet.addOneToUniqDSet acc m
+    pure (Prelude.foldl step z ms)
+
 --https://hackage-content.haskell.org/package/ghc-9.10.2/docs/src/GHC.Types.Unique.DSet.html#UniqDSet
 --https://hackage-content.haskell.org/package/ghc-9.10.2/docs/Language-Haskell-Syntax-Module-Name.html#t:ModuleName
 --deriving instance Generic (GHC.Types.Unique.DSet.UniqDSet GHC.Types.FM.ModuleName)
 --deriving Generic not possible
-
-instance FromJSON (GHC.Types.Unique.DSet.UniqDSet GHC.Plugins.ModuleName) where
-  parseJSON = undefined
+--instance FromJSON (GHC.Types.Unique.DSet.UniqDSet GHC.Plugins.ModuleName) where
+--  parseJSON = undefined
     
 
-instance ToJSON (GHC.Types.Unique.DSet.UniqDSet GHC.Plugins.ModuleName) where
-  toJSON = undefined
+--instance ToJSON (GHC.Types.Unique.DSet.UniqDSet GHC.Plugins.ModuleName) where
+--  toJSON = undefined
 
 deriving instance Generic (GHC.Types.FM.Definite GHC.Types.FM.UnitId)
 instance FromJSON (GHC.Types.FM.Definite GHC.Types.FM.UnitId)
