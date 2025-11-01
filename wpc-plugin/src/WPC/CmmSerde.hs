@@ -53,7 +53,7 @@ import GHC.Types.CostCentre ( CCFlavour , mkCafFlavour )
 import GHC.Types.CostCentre.State (CostCentreIndex )
 import GHC.Data.Strict ( Maybe(..) )
 
--- ADD this instead:
+
 import Data.Primitive.ByteArray
   ( ByteArray, MutableByteArray
   , sizeofByteArray, indexByteArray
@@ -156,7 +156,7 @@ import GHC.Types.Name (
 
 -- Piezas requeridas por esos ctors
 import GHC.Types.Name.Occurrence (OccName, mkOccName, mkTcOcc, mkVarOcc)
-import GHC.Types.SrcLoc (SrcSpan, noSrcSpan)
+import GHC.Types.SrcLoc (SrcSpan, noSrcSpan, RealSrcSpan , mkRealSrcLoc , mkRealSrcSpan)
 import GHC.Types.Unique (Unique)
 import GHC.Unit.Module (Module)
 
@@ -1089,13 +1089,33 @@ instance ToJSON GHC.Types.FM.UnhelpfulSpanReason where
 --       error "falla pues"
 
 
+defaultRealSrcSpan :: GHC.Types.SrcLoc.RealSrcSpan
+defaultRealSrcSpan =
+  let f  = GHC.Data.FastString.fsLit "<unknown>"
+      l0 = GHC.Types.SrcLoc.mkRealSrcLoc f 1 1
+  in  GHC.Types.SrcLoc.mkRealSrcSpan l0 l0
+
+
+instance FromJSON GHC.Types.SrcLoc.RealSrcSpan where
+  parseJSON :: Value -> Parser GHC.Types.SrcLoc.RealSrcSpan
+  parseJSON _ = pure defaultRealSrcSpan
+
+instance ToJSON GHC.Types.SrcLoc.RealSrcSpan where
+  toJSON :: GHC.Types.SrcLoc.RealSrcSpan -> Value
+  toJSON _ = object
+    [ "tag"    .= String "RealSrcSpan"
+    , "status" .= String "not handled"
+    , "note"   .= String "decoded as defaultRealSrcSpan"
+    ]
+--https://www.stackage.org/haddock/lts-24.17/ghc-9.10.3/src/GHC.Types.SrcLoc.html#RealSrcSpan
 --deriving instance Generic GHC.Types.FM.RealSrcSpan
-instance FromJSON GHC.Types.FM.RealSrcSpan where
-   parseJSON =
-       error "falla pues"
+--instance FromJSON GHC.Types.FM.RealSrcSpan where  alternate ( but worse )  way to refer to the same type 
+--instance FromJSON GHC.Types.SrcLoc.RealSrcSpan where
+--   parseJSON =
+--       error "falla pues"
 --looks like something related to source annotations, and thus not strictl necessary?
-instance ToJSON  GHC.Types.FM.RealSrcSpan where
-  toJSON = undefined
+--instance ToJSON GHC.Types.SrcLoc.RealSrcSpan where
+--  toJSON = undefined
 
 
 
