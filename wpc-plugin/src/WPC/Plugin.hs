@@ -47,7 +47,9 @@ import WPC.ForeignStubDecls
 import WPC.CmmSerde 
 import GHC.Cmm.Dataflow.Label (Label, mkHooplLabel)
 import GHC.Types.Unique        (mkUniqueGrimily)
-import Data.Aeson (toJSON)
+
+
+import Data.Aeson (toJSON, fromJSON,ToJSON, FromJSON, Value, Result(..), fromJSON, toJSON)
 
 
 
@@ -220,21 +222,38 @@ runPhaseFun phase = do
 
     _ -> runPhase phase
 
-stgToCmmFun :: HscEnv -> StgToCmmConfig -> InfoTableProvMap -> [TyCon] -> CollectedCCs -> [CgStgTopBinding] -> HpcInfo -> Stream IO CmmGroup ModuleLFInfos
+stgToCmmFun :: HscEnv
+            -> StgToCmmConfig
+            -> InfoTableProvMap
+            -> [TyCon]
+            -> CollectedCCs
+            -> [CgStgTopBinding]
+            -> HpcInfo
+            -> Stream IO CmmGroup ModuleLFInfos
 stgToCmmFun hscEnv cfg itpm tcList ccc stgBinds hpcInfo = do
   liftIO $ do
-    putStrLn $ " ###### run stgToCmmFun"
-    modifyIORef globalEnvIORef $ \d -> d {geStgBinds = Just stgBinds}
-  let stream = StgToCmm.codeGen (hsc_logger hscEnv) (hsc_tmpfs hscEnv) cfg itpm tcList ccc stgBinds hpcInfo
-  
-  let serde parameter = do
-        --let cmmDoc = vcat $ map (\i -> pdoc platform i $$ blankLine) a
-        --hPutStr cmmHandle . showSDoc dflags $ withPprStyle dumpStyle cmmDoc
-        let temp = toJSON parameter  
-        liftIO $ print temp
-        pure parameter
+    putStrLn " ###### run stgToCmmFun"
+    modifyIORef globalEnvIORef $ \d -> d { geStgBinds = Just stgBinds }
+
+  let stream =
+        StgToCmm.codeGen
+          (hsc_logger hscEnv)
+          (hsc_tmpfs hscEnv)
+          cfg itpm tcList ccc stgBinds hpcInfo
+
+      serde :: forall a. (Data.Aeson.ToJSON a, Data.Aeson.FromJSON a) => a -> IO a
+      serde parameter = do
+        let v = Data.Aeson.toJSON parameter
+        liftIO (print v)
+        liftIO (print "dubear3")
+        case Data.Aeson.fromJSON v of
+          Data.Aeson.Success x -> pure x
+          Data.Aeson.Error msg -> fail ("serde roundtrip failedd: " ++ msg)
+          --Data.Aeson.Error msg -> pure parameter
 
   Stream.mapM serde stream
+
+
 
 cmmToRawCmmFun :: Handle -> HscEnv -> DynFlags -> Maybe Module -> Stream IO CmmGroupSRTs a -> IO (Stream IO RawCmmGroup a)
 cmmToRawCmmFun cmmHandle hscEnv dflags mMod cmms = do
