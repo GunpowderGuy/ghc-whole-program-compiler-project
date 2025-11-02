@@ -265,7 +265,7 @@ instance ToJSON CLabel where
       encodeFOD IsData     = "Data"
 
 
---https://gitlab.haskell.org/ghc/ghc/-/blob/ghc-9.10.2-release/compiler/GHC/Cmm/CLabel.hs?ref_type=tags
+--https://gitlab.haskell.org/ghc/ghc/-/blob/ghc-9.10.3-release/compiler/GHC/Cmm/CLabel.hs?ref_type=tags
 -- main CLabel parser
 instance FromJSON CLabel where
     parseJSON = withObject "CLabel" $ \o -> do
@@ -1060,15 +1060,15 @@ instance ToJSON CCFlavour where
 
 
 --Csaba says to alwayys use CafCC to not need Indexed CCflavour
---https://hackage-content.haskell.org/package/ghc-9.10.2/docs/src/GHC.Types.CostCentre.html#IndexedCCFlavour
+--https://hackage-content.haskell.org/package/ghc-9.10.3/docs/src/GHC.Types.CostCentre.html#IndexedCCFlavour
 
---https://hackage-content.haskell.org/package/ghc-9.10.2/docs/src/GHC.Types.CostCentre.html#ppFlavourLblComponent
---https://hackage-content.haskell.org/package/ghc-9.10.2/docs/src/GHC.Types.CostCentre.html#mkExprCCFlavour
+--https://hackage-content.haskell.org/package/ghc-9.10.3/docs/src/GHC.Types.CostCentre.html#ppFlavourLblComponent
+--https://hackage-content.haskell.org/package/ghc-9.10.3/docs/src/GHC.Types.CostCentre.html#mkExprCCFlavour
 
 --seems like this type is source annotations cmm can prescind from 
 --instance ToJSON GHC.Types.CostCentre.CCFlavour  where
 --  toJSON = undefined
---https://hackage-content.haskell.org/package/ghc-9.10.2/docs/GHC-Types-CostCentre.html
+--https://hackage-content.haskell.org/package/ghc-9.10.3/docs/GHC-Types-CostCentre.html
 
 -- Followed Csabas advice
 instance ToJSON CCFlavour where
@@ -1204,8 +1204,8 @@ instance FromJSON (GHC.Types.Unique.DSet.UniqDSet GHC.Plugins.ModuleName) where
         step acc m = GHC.Types.Unique.DSet.addOneToUniqDSet acc m
     pure (Prelude.foldl step z ms)
 
---https://hackage-content.haskell.org/package/ghc-9.10.2/docs/src/GHC.Types.Unique.DSet.html#UniqDSet
---https://hackage-content.haskell.org/package/ghc-9.10.2/docs/Language-Haskell-Syntax-Module-Name.html#t:ModuleName
+--https://hackage-content.haskell.org/package/ghc-9.10.3/docs/src/GHC.Types.Unique.DSet.html#UniqDSet
+--https://hackage-content.haskell.org/package/ghc-9.10.3/docs/Language-Haskell-Syntax-Module-Name.html#t:ModuleName
 --deriving instance Generic (GHC.Types.Unique.DSet.UniqDSet GHC.Types.FM.ModuleName)
 --deriving Generic not possible
 --instance FromJSON (GHC.Types.Unique.DSet.UniqDSet GHC.Plugins.ModuleName) where
@@ -1448,7 +1448,7 @@ instance FromJSON Width where
             "W512" -> pure W512
             other -> fail ("Unknown Width tag: " <> unpack other)
 
---https://hackage-content.haskell.org/package/ghc-9.10.2/docs/src/GHC.Cmm.Type.html
+--https://hackage-content.haskell.org/package/ghc-9.10.3/docs/src/GHC.Cmm.Type.html
 
 
 -- Needed (if not already):
