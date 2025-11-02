@@ -919,6 +919,7 @@ instance ToJSON CostCentre
 -- ==========================
 -- ToJSON for CostCentreStack
 -- ==========================
+{-
 instance ToJSON CostCentreStack where
   toJSON :: CostCentreStack -> Value
   toJSON ccs
@@ -940,6 +941,13 @@ instance ToJSON CostCentreStack where
           -- Accessor defined in GHC.Types.CostCentre
           currentCostCentre = \_ -> error "extractCC: real CostCentre extraction not available in this context"
           -- If you have `ccsCC :: CostCentreStack -> CostCentre`, use that instead
+-}
+instance ToJSON CostCentreStack where
+  toJSON :: CostCentreStack -> Value
+  toJSON ccs
+    | ccs == currentCCS  = object ["tag" .= String "CurrentCCS"]
+    | ccs == dontCareCCS = object ["tag" .= String "DontCareCCS"]
+    | otherwise          = object ["tag" .= String "DontCareCCS"]
 
 
 
